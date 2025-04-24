@@ -114,9 +114,10 @@ public class LibraryDatabase implements java.io.Serializable {
   /**
    * Return a report of all books in the library, in CSV (comma-separated values) format.
    *
-   * @return A string containing one line per book in the library, in the form "title", "author",
-   *     "callNumber", copies Note that each field is in quotes, except copies which is an integer,
-   *     and the fields are separated by commas.
+   * @return A string containing one line per book in the library, in the form
+   *     <p>"title","author","callNumber",copies
+   *     <p>Note that each field is in quotes, except copies which is an integer, and the fields are
+   *     separated by commas.
    */
   public String getBookCsv() {
   }
