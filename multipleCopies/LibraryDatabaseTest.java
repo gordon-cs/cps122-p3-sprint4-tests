@@ -60,9 +60,9 @@ public class LibraryDatabaseTest {
   @Test
   public void testGetBookCsv() {
     String expectedCsv =
-        "\"Title1\",\"Author1\",\"CallNumber1\"\n"
-            + "\"Title2\",\"Author2\",\"CallNumber2\"\n"
-            + "\"Title3\",\"Author3\",\"CallNumber3\"\n";
+        "\"Title1\",\"Author1\",\"CallNumber1\",2\n"
+            + "\"Title2\",\"Author2\",\"CallNumber2\",1\n"
+            + "\"Title3\",\"Author3\",\"CallNumber3\",1\n";
     assertEquals(expectedCsv, db.getBookCsv());
   }
 
