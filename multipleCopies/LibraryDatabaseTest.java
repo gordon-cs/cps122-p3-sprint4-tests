@@ -298,4 +298,124 @@ public class LibraryDatabaseTest {
         db.getDueDate("CallNumber1", 2),
         "Second copy due date should remain unchanged");
   }
+
+  @Test
+  public void testGetCopyInfoAvailable() {
+    // Test getting info for a copy that is available (not checked out)
+    String copyInfo = db.getCopyInfo("CallNumber1", 1);
+    assertNotNull(copyInfo, "Copy info should not be null");
+    assertTrue(copyInfo.contains("CallNumber1"), "Copy info should contain call number");
+    assertTrue(copyInfo.contains("Title1"), "Copy info should contain title");
+    assertTrue(copyInfo.contains("Author1"), "Copy info should contain author");
+    assertTrue(copyInfo.contains("Available"), "Copy info should show as available");
+    String expected = "\"CallNumber1\", 1, \"Title1\", \"Author1\", Available";
+    assertEquals(copyInfo, expected);
+  }
+
+  @Test
+  public void testGetCopyInfoCheckedOut() {
+    // Check out a book
+    assertTrue(db.checkout("CallNumber1", 1, "Email1"), "Checkout should succeed");
+
+    // Test getting info for a checked out copy
+    String copyInfo = db.getCopyInfo("CallNumber1", 1);
+    assertNotNull(copyInfo, "Copy info should not be null");
+    assertTrue(copyInfo.contains("CallNumber1"), "Copy info should contain call number");
+    assertTrue(copyInfo.contains("Title1"), "Copy info should contain title");
+    assertTrue(copyInfo.contains("Author1"), "Copy info should contain author");
+    assertTrue(copyInfo.contains("Email1"), "Copy info should contain borrower email");
+    assertTrue(
+        copyInfo.contains(LocalDate.now().plusDays(28).toString()),
+        "Copy info should contain due date");
+    assertTrue(copyInfo.contains("false"), "Copy info should show not renewed");
+
+    String expected =
+        "\"CallNumber1\", 1, \"Title1\", \"Author1\", \"Email1\", "
+            + LocalDate.now().plusDays(28).toString()
+            + ", false";
+    assertEquals(copyInfo, expected);
+
+    // Renew the loan
+    assertTrue(db.renew("CallNumber1", 1), "Renewal should succeed");
+
+    // Check that renewed status is updated
+    copyInfo = db.getCopyInfo("CallNumber1", 1);
+    assertTrue(copyInfo.contains("true"), "Copy info should show as renewed");
+  }
+
+  @Test
+  public void testGetCopyInfoNonExistent() {
+    // Test with non-existent call number
+    assertNull(
+        db.getCopyInfo("NonExistentBook", 1), "Copy info should be null for non-existent book");
+
+    // Test with valid call number but non-existent copy number
+    assertNull(
+        db.getCopyInfo("CallNumber1", 10), "Copy info should be null for non-existent copy number");
+  }
+
+  @Test
+  public void testGetBorrowerInfoWithLoans() {
+    // Check out books to a borrower
+    assertTrue(db.checkout("CallNumber1", 1, "Email1"), "First checkout should succeed");
+    assertTrue(db.checkout("CallNumber2", 1, "Email1"), "Second checkout should succeed");
+
+    // Get borrower info
+    String borrowerInfo = db.getBorrowerInfo("Email1");
+    assertNotNull(borrowerInfo, "Borrower info should not be null");
+    assertTrue(borrowerInfo.contains("\"FirstName1\""), "Borrower info should contain first name");
+    assertTrue(borrowerInfo.contains("\"LastName1\""), "Borrower info should contain last name");
+    assertTrue(borrowerInfo.contains("\"Email1\""), "Borrower info should contain email");
+    assertTrue(borrowerInfo.contains("\"Phone1\""), "Borrower info should contain phone");
+
+    // Check loan information
+    assertTrue(borrowerInfo.contains("* \"CallNumber1\""), "Borrower info should show first loan");
+    assertTrue(borrowerInfo.contains("* \"CallNumber2\""), "Borrower info should show second loan");
+    assertTrue(borrowerInfo.contains("Title1"), "Borrower info should show first book title");
+    assertTrue(borrowerInfo.contains("Title2"), "Borrower info should show second book title");
+
+    // Count occurrences of loan entries (lines starting with *)
+    String[] lines = borrowerInfo.split("\n");
+    int loanCount = 0;
+    for (String line : lines) {
+      if (line.startsWith("*")) {
+        loanCount++;
+      }
+    }
+    assertEquals(2, loanCount, "Borrower should have 2 loans listed");
+
+    String expected =
+        "\"FirstName1\", \"LastName1\", \"Email1\", \"Phone1\"\n"
+            + "* \"CallNumber1\", 1, \"Title1\", \"Author1\", "
+            + LocalDate.now().plusDays(28).toString()
+            + ", false\n"
+            + "* \"CallNumber2\", 1, \"Title2\", \"Author2\", "
+            + LocalDate.now().plusDays(28).toString()
+            + ", false\n";
+    assertEquals(borrowerInfo, expected);
+  }
+
+  @Test
+  public void testGetBorrowerInfoNoLoans() {
+    // Test borrower with no loans
+    String borrowerInfo = db.getBorrowerInfo("Email2");
+    assertNotNull(borrowerInfo, "Borrower info should not be null");
+    assertTrue(borrowerInfo.contains("\"FirstName2\""), "Borrower info should contain first name");
+    assertTrue(borrowerInfo.contains("\"LastName2\""), "Borrower info should contain last name");
+    assertTrue(borrowerInfo.contains("\"Email2\""), "Borrower info should contain email");
+    assertTrue(borrowerInfo.contains("\"Phone2\""), "Borrower info should contain phone");
+
+    // Should not contain any loan entries
+    assertFalse(borrowerInfo.contains("*"), "Borrower info should not contain loan entries");
+    String expected = "\"FirstName2\", \"LastName2\", \"Email2\", \"Phone2\"\n";
+    assertEquals(borrowerInfo, expected, "Borrower info should match expected format");
+  }
+
+  @Test
+  public void testGetBorrowerInfoNonExistent() {
+    // Test with non-existent borrower email
+    assertNull(
+        db.getBorrowerInfo("NonExistentEmail"),
+        "Borrower info should be null for non-existent borrower");
+  }
 }

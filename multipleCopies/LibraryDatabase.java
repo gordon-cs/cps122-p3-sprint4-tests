@@ -182,4 +182,44 @@ public class LibraryDatabase implements java.io.Serializable {
    *     returned, or has already been renewed
    */
   public boolean renew(String callNumber, int copyNumber) {
+  }
+
+  /**
+   * Get printable info about a copy of a book. If it is checked out, include info on the borrower
+   * and loan status. Otherwise, indicate that it is available. The format is:
+   *
+   * <p>"callnumber", copyNumber, "title", "author", "borrowerEmail", dueDate, renewed
+   *
+   * <p>For example:
+   *
+   * <p>"QA76.73.J39", 1, "Core Java", "Cay Horstmann", "fakeemail@example.com", 2023-10-01, true
+   *
+   * <p>"QA76.73.J39", 2, "Core Java", "Cay Horstmann", Available
+   *
+   * @param callNumber The call number of the book
+   * @param copyNumber The copy number of the book
+   * @return A string formatted as above, or null if the book or copy does not exist
+   */
+  public String getCopyInfo(String callNumber, int copyNumber) {
+  }
+
+  /**
+   * Get printable info about a borrower. If they have any books checked out, include info about the
+   * loans, one line per loan, prefixed by "*". The format is:
+   *
+   * <p>"firstName", "lastName", "email", "phone"
+   *
+   * <p>* "callnumber", copyNumber, "title", "author", dueDate, renewed
+   *
+   * <p>For example:
+   *
+   * <p>"Anthony", "Aardvark", "anthony.aardvark@gordon.edu", "978-555-1234"
+   *
+   * <p>* "QA76.73.J39", 1, "Core Java", "Cay Horstmann", 2025-05-10, false
+   *
+   * @param email The email of the borrower
+   * @return A string formatted as above, or null if the borrower does not exist
+   */
+  public String getBorrowerInfo(String email) {
+  }
 }
